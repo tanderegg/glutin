@@ -109,7 +109,8 @@ impl Context {
 
     pub unsafe extern "C" fn x_error_handler(_: *mut ffi::Display,
                                              x_error_event: *mut ffi::XErrorEvent) -> c_int {
-        println!("X Error: {}", (*x_error_event).error_code);
+        println!("X Error {}: {} - {} - {}", (*x_error_event).type_, (*x_error_event).error_code,
+                 (*x_error_event).request_code, (*x_error_event).minor_code);
         0
     }
 }
