@@ -31,13 +31,13 @@ pub mod ffi {
         include!(concat!(env!("OUT_DIR"), "/glx_extra_bindings.rs"));
     }
 }
- 
+
 pub struct Context {
     glx: ffi::glx::Glx,
     display: *mut ffi::Display,
     window: ffi::Window,
     context: ffi::GLXContext,
-    pixel_format: PixelFormat,
+    pixel_format: PixelFormat
 }
 
 // TODO: remove me
@@ -55,7 +55,7 @@ impl Context {
         opengl: &'a GlAttributes<&'a Context>,
         display: *mut ffi::Display,
         screen_id: libc::c_int,
-) -> Result<ContextPrototype<'a>, CreationError> {
+    ) -> Result<ContextPrototype<'a>, CreationError> {
         // This is completely ridiculous, but VirtualBox's OpenGL driver needs some call handled by
         // *it* (i.e. not Mesa) to occur before anything else can happen. That is because
         // VirtualBox's OpenGL driver is going to apply binary patches to Mesa in the DLL
@@ -63,6 +63,10 @@ impl Context {
         //
         // The easiest way to do this is to just call `glXQueryVersion()` before doing anything
         // else. See: https://www.virtualbox.org/ticket/8293
+        unsafe {
+            (xlib.XSetErrorHandler)(Some(Context::x_error_handler));
+        }
+
         let (mut major, mut minor) = (0, 0);
         unsafe {
             glx.QueryVersion(display as *mut _, &mut major, &mut minor);
@@ -101,6 +105,12 @@ impl Context {
             visual_infos: unsafe { mem::transmute(visual_infos) },
             pixel_format: pixel_format,
         })
+    }
+
+    pub unsafe extern "C" fn x_error_handler(_: *mut ffi::Display,
+                                             x_error_event: *mut ffi::XErrorEvent) -> c_int {
+        println!("X Error: {}", (*x_error_event).error_code);
+        0
     }
 }
 
