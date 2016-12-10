@@ -63,13 +63,13 @@ impl Context {
         //
         // The easiest way to do this is to just call `glXQueryVersion()` before doing anything
         // else. See: https://www.virtualbox.org/ticket/8293
-        unsafe {
-            (xlib.XSetErrorHandler)(Some(Context::x_error_handler));
-        }
-
         let (mut major, mut minor) = (0, 0);
         unsafe {
             glx.QueryVersion(display as *mut _, &mut major, &mut minor);
+        }
+
+        unsafe {
+            (xlib.XSetErrorHandler)(Some(Context::x_error_handler));
         }
 
         // loading the list of extensions
@@ -96,6 +96,8 @@ impl Context {
             vi_copy
         };
 
+        println!("Visual ID: 0x{:x}", visual_infos.visualid);
+
         Ok(ContextPrototype {
             glx: glx,
             extensions: extensions,
@@ -108,9 +110,9 @@ impl Context {
     }
 
     pub unsafe extern "C" fn x_error_handler(_: *mut ffi::Display,
-                                             x_error_event: *mut ffi::XErrorEvent) -> c_int {
-        println!("X Error {}: {} - {} - {}", (*x_error_event).type_, (*x_error_event).error_code,
-                 (*x_error_event).request_code, (*x_error_event).minor_code);
+                                             event: *mut ffi::XErrorEvent) -> c_int {
+        println!("X Error: {} - {} - {}", (*event).error_code,
+                 (*event).request_code, (*event).minor_code);
         0
     }
 }
@@ -472,6 +474,12 @@ unsafe fn choose_fbconfig(glx: &ffi::glx::Glx, extensions: &str, xlib: &ffi::Xli
             },
         }
 
+        //out.push(ffi::glx::BUFFER_SIZE as c_int);
+        //out.push(32);
+
+        //out.push(ffi::glx::FBCONFIG_ID as c_int);
+        //out.push(0x10F as c_int);
+
         out.push(ffi::glx::CONFIG_CAVEAT as c_int);
         out.push(ffi::glx::DONT_CARE as c_int);
 
@@ -517,6 +525,10 @@ unsafe fn choose_fbconfig(glx: &ffi::glx::Glx, extensions: &str, xlib: &ffi::Xli
         srgb: get_attrib(ffi::glx_extra::FRAMEBUFFER_SRGB_CAPABLE_ARB as c_int) != 0 ||
               get_attrib(ffi::glx_extra::FRAMEBUFFER_SRGB_CAPABLE_EXT as c_int) != 0,
     };
+
+    let config_id = get_attrib(ffi::glx::FBCONFIG_ID as c_int);
+
+    println!("Config ID 0x{:x}", config_id);
 
     Ok((fb_config, pf_desc))
 }

@@ -114,6 +114,8 @@ impl Window {
         let display = winit_window.get_xlib_xconnection().unwrap();
         let screen_id = winit_window.get_xlib_screen_id().unwrap() as _;
 
+        println!("X Window Screen ID: {}", screen_id);
+
         // start the context building process
         enum Prototype<'a> {
             Glx(::api::glx::ContextPrototype<'a>),
@@ -185,7 +187,12 @@ impl Window {
             },
         };
 
+        println!("Window Visual ID: 0x{:x}", visual_infos.visualid);
+
         let xlib_window = winit_window.get_xlib_window().unwrap();
+
+        //println!("X Window: {}", (*xlib_window));
+
         // finish creating the OpenGL context
         let context = match context {
             Prototype::Glx(ctxt) => {
