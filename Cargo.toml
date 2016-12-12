@@ -14,7 +14,8 @@ build = "build.rs"
 lazy_static = "0.2.0"
 libc = "0.2"
 shared_library = "0.1.0"
-winit = "0.5.6"
+#winit = { git = "https://github.com/tanderegg/winit.git", version = "0.5.6", branch = "nvidia_fixes" }
+winit = { path = "/home/tanderegg/Projects/winit" }
 
 [build-dependencies]
 gl_generator = "0.5"
